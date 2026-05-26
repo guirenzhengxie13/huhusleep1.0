@@ -1,16 +1,22 @@
 # 睡眠监测数据处理项目
 
-## 项目简介
-
-本项目用于处理平台导出的睡眠监测 CSV，按院区和日期自动归档后生成中间数据、睡眠事件、离床片段、告警文件、图表和报表。主流程入口是 `main.py`，独立测试跟踪流程入口是 `pipeline/test_tracker.py`。
+本项目用于处理平台导出的睡眠监测 CSV，按院区和日期自动归档后生成中间数据、睡眠事件、离床片段、告警文件、图表和报表。当前仓库是重构期公开备份仓库，目标是逐步摆脱旧 Excel/TXT 依赖，同时保持输出结果形态一致。
 
 当前主要业务：
 
-- 睡眠主流水线：处理睡眠报告、呼吸心率、后台告警和离床相关图表。
+- 睡眠主流水线：处理睡眠报告、呼吸心率、后台告警、离床图表和合肥离床分析 Excel。
 - 测试跟踪独立流程：处理测试情况跟踪表和 `2.d.43` 数据。
 - 失能周报独立流程：位于 `disability_weekreport/`，不接入睡眠主流水线。
 
-项目数据统一放在桌面 `data` 文件夹下，例如：
+## 当前路径约定
+
+重构期输出统一写入：
+
+```text
+C:\Users\Lenovo\Desktop\datatest
+```
+
+旧结果对照基线保留在：
 
 ```text
 C:\Users\Lenovo\Desktop\data
@@ -22,21 +28,68 @@ C:\Users\Lenovo\Desktop\data
 C:\Users\Lenovo\Downloads
 ```
 
+## 公开仓库注意事项
+
+这个仓库不提交本地账号、驱动和运行结果：
+
+- `assets/crawler_accounts.json`：本地爬虫账号文件，不进 Git。
+- `assets/chromedriver.exe`：本地 ChromeDriver，不进 Git。
+- `assets/pipeline_status.csv`：运行状态表，不进 Git。
+- `assets/旧依赖/`、`最新设备下载/`：旧表格依赖和平台导出备份，不进 Git。
+- `datatest/`、`data/`：运行输出目录，不进 Git。
+
+首次运行前，如需后台告警爬取，请在本地创建 `assets/crawler_accounts.json`，格式如下：
+
+```json
+{
+  "default": {
+    "username": "账号",
+    "password": "密码"
+  },
+  "hk": {
+    "username": "香港账号",
+    "password": "密码"
+  }
+}
+```
+
 ## 环境初始化
 
-先安装 Python 依赖：
+安装 Python 依赖：
 
 ```bash
 pip install -r requirements.txt
 ```
 
-再准备 ChromeDriver。`assets/chromedriver.exe` 不进 Git，换电脑或 Chrome 更新后运行：
+准备 ChromeDriver：
 
 ```bash
 python tool/update_chromedriver.py
 ```
 
-脚本会自动识别本机 Chrome 版本，检查并下载匹配的 ChromeDriver。旧驱动会备份为 `assets/chromedriver_backup_时间.exe`。
+脚本会自动识别本机 Chrome 版本，下载匹配的 `assets/chromedriver.exe`。该文件只保存在本地。
+
+## 统一设备总表
+
+当前全项目设备基础信息统一来自：
+
+```text
+assets/full_device_roster.csv
+```
+
+现有必需字段：
+
+```text
+院区,设备号,老人姓名,房间床位
+```
+
+读取逻辑按列名取值，不依赖列顺序。后续可以继续追加字段，例如：
+
+```text
+房间号,床号,失能等级,护理级别,备注,是否启用
+```
+
+只要不删除或改名现有四个字段，就不会影响当前院区识别和姓名/床位填充。代码已经预留读取 `失能等级`、`护理级别`、`养老院失能评估` 之一作为失能等级来源。
 
 ## 院区配置
 
@@ -59,11 +112,11 @@ python tool/update_chromedriver.py
 
 字段说明：
 
-- `name`：院区显示名。
-- `base_data_path`：该院区在桌面 `datatest` 下的数据目录；旧 `data` 暂作结果对照基线。
-- `leave_bed_template_name`：离床分析 Excel 版式配置，放在 `assets/`，只保存表头、行列尺寸和图片布局。
-- `device_roster_name`：统一设备总表，当前固定为 `assets/full_device_roster.csv`。
-- `crawler_account`：后台告警爬虫账号别名，对应 `assets/crawler_accounts.json`。
+- `name`：院区显示名，需要能和 `full_device_roster.csv` 的 `院区` 字段对应。
+- `base_data_path`：该院区在 `datatest` 下的数据目录。
+- `leave_bed_template_name`：离床分析 Excel 版式配置，放在 `assets/`。
+- `device_roster_name`：统一设备总表，当前固定为 `full_device_roster.csv`。
+- `crawler_account`：后台告警爬虫账号别名，对应本地 `assets/crawler_accounts.json`。
 - `tasks`：该院区要执行的流水线步骤编号。
 
 当前院区任务：
@@ -75,7 +128,27 @@ python tool/update_chromedriver.py
 | 香港 | `hk` | `1,2,3,6,10` |
 | 南京 | `nj` | `1-3` |
 
-新增院区时，先把设备号补进 `assets/full_device_roster.csv`，再在 `config.json` 增加一段院区配置即可；目录不需要手动创建。
+新增院区时，先把设备号补进 `assets/full_device_roster.csv`，再在 `config.json` 增加院区配置。
+
+## 离床分析 Excel 模板配置
+
+合肥离床分析 Excel 不再依赖旧的 `合肥院离床数据分析模板.xlsx`。当前改为读取轻量 JSON：
+
+```text
+assets/leave_bed_analysis_template.json
+```
+
+该 JSON 只保存版式配置：
+
+- sheet 名称
+- 日期单元格
+- 表头
+- 列宽
+- 数据行高
+- 图片尺寸和偏移
+- 离线/无人在床填充色
+
+老人、设备号、房间床位不写在 JSON 里，而是运行时按当前院区从 `full_device_roster.csv` 自动填入。睡眠、离床、告警、诊断和图片仍按现有规则生成。
 
 ## 流水线步骤
 
@@ -105,9 +178,29 @@ python tool/update_chromedriver.py
 
 同一院区、同一日期需要同时有睡眠报告和呼吸心率两类 CSV，才会启动主流水线。重构期归档和输出都在桌面 `datatest` 对应院区目录下。
 
+## 运行方式
+
+主流程：
+
+```bash
+python main.py
+```
+
+测试跟踪独立流程：
+
+```bash
+python pipeline/test_tracker.py
+```
+
+失能周报独立流程：
+
+```bash
+python disability_weekreport/main.py
+```
+
 ## 断点运行
 
-状态表在：
+状态表默认在本地生成：
 
 ```text
 assets/pipeline_status.csv
@@ -121,17 +214,7 @@ assets/pipeline_status.csv
 状态=10      表示从第 10 步继续
 ```
 
-程序每次启动时会先读取状态表，优先执行未完成任务，并自动跳过断点之前的步骤。想手动调试某一步，就把对应行的 `状态` 改成步骤编号；跑完后程序会自动改回 `已完成`。
-
-## 后台告警爬取
-
-后台告警是第 6 步，依赖 Selenium、Chrome 和 `assets/chromedriver.exe`。爬虫账号在：
-
-```text
-assets/crawler_accounts.json
-```
-
-每个院区通过 `config.json` 的 `crawler_account` 选择账号。香港使用独立账号，因为不同账号能看到不同院区。告警 CSV 会保存到对应院区 `warn` 目录。
+该状态表是运行产物，不提交到公开仓库。
 
 ## 测试跟踪独立流程
 
@@ -144,15 +227,15 @@ pipeline/test_tracker.py
 它从 Downloads 读取测试跟踪 CSV，按合肥、姜堰、南京拆分归档到：
 
 ```text
-C:\Users\Lenovo\Desktop\data\测试跟踪
+C:\Users\Lenovo\Desktop\datatest\测试跟踪
 ```
 
 `2.d.43` 文件只重命名归档；设备情况表会生成测试情况跟踪 `.xlsx`；`state_day = -1` 的记录会生成待补清单。
 
-## 后续优化方向
+## 后续重构方向
 
-- 将 `IMPORT_DIR`、项目根目录等硬编码路径迁入配置文件。
-- 给 `main.py` 增加命令行参数，减少直接改源码。
-- 继续优化告警爬虫，优先寻找后台接口替代 Selenium 翻页。
-- 将第 10 步离床预警叠加图的样式和输出规则沉淀为正式报表附件。
-- 整理 `assets` 中各院区映射文件，补齐姜堰、南京、香港的长期维护规范。
+- 继续把路径和运行参数从源码迁入配置或命令行参数。
+- 把 `full_device_roster.csv` 扩展为完整设备基础表，补充房间号、床号、失能等级等字段。
+- 失能周报逐步改为完全依赖设备总表，不再依赖独立旧配置中的设备清单。
+- 后台告警爬虫后续优先寻找接口替代 Selenium 翻页。
+- 保持 `datatest` 输出结构与旧 `data` 基线一致，重构以结果一致性验收。
