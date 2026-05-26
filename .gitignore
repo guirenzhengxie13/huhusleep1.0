@@ -1,0 +1,58 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.git_backup*/
+
+# Local environments
+venv/
+env/
+.env
+.venv/
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local browser driver and credentials
+assets/chromedriver*.exe
+assets/crawler_accounts.json
+assets/deviceID*.txt
+
+# Archived legacy dependencies and raw platform exports
+assets/旧依赖/
+最新设备下载/
+
+# Runtime state, generated outputs, and local analysis artifacts
+assets/pipeline_status.csv
+datatest/
+data/
+testdata/
+mixed_raw_sources/
+timeline_standalone/
+报告整理/report/
+报告整理/json/
+报告整理/real/
+报告整理/原始数据/
+
+# Large or local data files are ignored by default
+*.csv
+*.xlsx
+*.xls
+*.json
+
+# Public, required project configuration/data
+!config.json
+!disability_weekreport/config.json
+!assets/full_device_roster.csv
+!assets/leave_bed_analysis_template.json
+
+# Keep package/dependency manifests if added later
+!package.json
+!package-lock.json
+!pnpm-lock.yaml
+!requirements.txt

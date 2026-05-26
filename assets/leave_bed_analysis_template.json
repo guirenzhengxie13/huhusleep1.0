@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "description": "离床分析 Excel 版式配置，只保存表头、行高、列宽和图片布局；老人/设备/房间运行时从 full_device_roster.csv 填写。",
+  "sheets": ["Sheet1", "Sheet2", "Sheet3"],
+  "active_sheet": "Sheet1",
+  "date_label_cell": "A1",
+  "date_cell": "C1",
+  "date_number_format": "mm-dd-yy",
+  "header_row": 2,
+  "data_start_row": 3,
+  "default_sleep_period": "入睡\n清醒",
+  "headers": {
+    "A": "老人",
+    "B": "设备号",
+    "C": "楼层",
+    "D": "睡眠入睡/睡眠清醒",
+    "E": "睡眠报告离床",
+    "F": "离床预警（检测时间21点~次日6点）",
+    "G": "有无人状态图",
+    "H": "数据分析"
+  },
+  "columns": {
+    "name": "A",
+    "device_id": "B",
+    "floor": "C",
+    "sleep_period": "D",
+    "sleep_leave_bed": "E",
+    "alerts": "F",
+    "body_status_images": "G",
+    "analysis": "H"
+  },
+  "column_widths": {
+    "A": 10.35,
+    "B": 18.25,
+    "C": 10.375,
+    "D": 21.4666666666667,
+    "E": 27.1416666666667,
+    "F": 30.2916666666667,
+    "G": 40.8916666666667,
+    "H": 56.7833333333333,
+    "I": 9.0
+  },
+  "data_row_height": 120.0,
+  "image_layout": {
+    "target_column_index_zero_based": 6,
+    "width_px": 100,
+    "height_px": 60,
+    "left_padding_px": 10,
+    "top_padding_px": 10,
+    "x_step_px": 105,
+    "y_step_px": 65,
+    "images_per_row": 3
+  },
+  "offline_fill": "00B0F0"
+}

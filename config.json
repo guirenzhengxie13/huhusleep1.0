@@ -1,0 +1,31 @@
+{
+  "hf": {
+    "name": "合肥院区",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\合肥",
+    "leave_bed_template_name": "leave_bed_analysis_template.json",
+    "device_roster_name": "full_device_roster.csv",
+    "crawler_account": "default",
+    "tasks": ["1", "2", "3", "4", "5", "6", "7", "8"]
+  },
+  "jy": {
+    "name": "姜堰院区",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\姜堰",
+    "device_roster_name": "full_device_roster.csv",
+    "crawler_account": "default",
+    "tasks": ["1", "2", "3"] 
+  },
+  "hk": {
+    "name": "香港院区",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\香港",
+    "device_roster_name": "full_device_roster.csv",
+    "crawler_account": "hk",
+    "tasks": ["1", "2", "3", "6", "10"] 
+  },
+  "nj": {
+    "name": "南京院区",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\南京",
+    "device_roster_name": "full_device_roster.csv",
+    "crawler_account": "default",
+    "tasks": ["1", "2", "3"] 
+  }
+}
