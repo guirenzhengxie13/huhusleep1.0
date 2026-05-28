@@ -2,7 +2,6 @@ import os
 import csv
 import json
 import logging
-import concurrent.futures
 from datetime import datetime, timedelta
 
 def extract_leave_bed_times(sleep_data_file):
@@ -174,15 +173,10 @@ def run(config):
 
     device_folders = [d for d in os.listdir(config.SLEEP_EVENTS_DIR) if os.path.isdir(os.path.join(config.SLEEP_EVENTS_DIR, d))]
     
-    max_workers = min(8, len(device_folders)) if device_folders else 1
-    
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(process_device, d_name, config): d_name for d_name in device_folders}
-        for future in concurrent.futures.as_completed(futures):
-            device_name = futures[future]
-            try:
-                future.result()
-            except Exception as e:
-                logging.error(f"处理设备 {device_name} 时出错: {e}")
+    for device_name in device_folders:
+        try:
+            process_device(device_name, config)
+        except Exception as e:
+            logging.error(f"处理设备 {device_name} 时出错: {e}")
 
     logging.info("✅ 离床切片数据准备完毕！")

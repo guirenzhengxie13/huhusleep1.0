@@ -2,6 +2,10 @@ import argparse
 import json
 import logging
 import os
+os.environ["MPLBACKEND"] = "Agg"
+import matplotlib
+matplotlib.use("Agg")
+
 import re
 import sys
 from datetime import datetime, timedelta

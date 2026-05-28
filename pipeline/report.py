@@ -1,8 +1,38 @@
 import os
 import csv
 import logging
+import re
 from datetime import datetime
 from utils import get_device_mapping
+
+def parse_sleep_data_file(sleep_data_file):
+    with open(sleep_data_file, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    sleep_start, sleep_end = None, None
+    leave_bed_events = []
+    is_leave_bed_section = False
+
+    for line in lines:
+        line = line.strip()
+        if line.startswith("sleep_start:"):
+            sleep_start = line.split(": ")[1].split(" (")[0]
+        elif line.startswith("sleep_end:"):
+            sleep_end = line.split(": ")[1].split(" (")[0]
+        elif line.startswith("离床事件:"):
+            is_leave_bed_section = True
+        elif line.startswith("翻身事件:"):
+            is_leave_bed_section = False
+        elif line and re.match(r"\d{4}-\d{2}-\d{2}", line) and is_leave_bed_section:
+            leave_bed_events.append(line.split(" (")[0])
+
+    return sleep_start, sleep_end, leave_bed_events
+
+
+def format_time(time_str):
+    dt = datetime.fromisoformat(time_str)
+    return dt.strftime("%m-%d %H:%M:%S")
+
 
 def analyze_unprocessed_devices(unprocessed_devices, config):
     """回查 timeline 诊断未生成报告的设备"""
@@ -66,36 +96,11 @@ def run(config):
         
         if os.path.exists(device_dir):
             timestamp_dirs = sorted(os.listdir(device_dir))
-            if timestamp_dirs:
-                first_dir = timestamp_dirs[0]
-                sleep_data_file = os.path.join(device_dir, first_dir, "sleep_data.txt")
-                
+            for timestamp_dir in timestamp_dirs:
+                sleep_data_file = os.path.join(device_dir, timestamp_dir, "sleep_data.txt")
                 if os.path.exists(sleep_data_file):
-                    with open(sleep_data_file, 'r', encoding='utf-8') as f:
-                        lines = f.readlines()
-                    
-                    sleep_start, sleep_end = None, None
-                    leave_bed_events = []
-                    is_leave_bed_section = False
-                    
-                    for line in lines:
-                        line = line.strip()
-                        if line.startswith("sleep_start:"):
-                            sleep_start = line.split(": ")[1].split(" (")[0]
-                        elif line.startswith("sleep_end:"):
-                            sleep_end = line.split(": ")[1].split(" (")[0]
-                        elif line.startswith("离床事件:"):
-                            is_leave_bed_section = True
-                        elif line.startswith("翻身事件:"):
-                            is_leave_bed_section = False
-                        elif line and line.startswith("2026-") and is_leave_bed_section:
-                            leave_bed_events.append(line.split(" (")[0])
-                    
+                    sleep_start, sleep_end, leave_bed_events = parse_sleep_data_file(sleep_data_file)
                     if sleep_start and sleep_end:
-                        def format_time(time_str):
-                            dt = datetime.fromisoformat(time_str)
-                            return dt.strftime("%m-%d %H:%M:%S")
-                        
                         formatted_sleep_start = format_time(sleep_start)
                         formatted_sleep_end = format_time(sleep_end)
                         
@@ -105,8 +110,10 @@ def run(config):
                         
                         record = f"{info['name']} | {info['floor']} | 入睡 {formatted_sleep_start} | 清醒 {formatted_sleep_end} | 离床时间：{leave_bed_str}"
                         data.append(record)
-                        processed_devices += 1
                         device_processed = True
+
+            if device_processed:
+                processed_devices += 1
         
         if not device_processed:
             unprocessed_devices.append({

@@ -143,18 +143,11 @@ for /d %%D in ("%SRC%\*") do (
 
         for %%F in ("%%D\*") do (
             if exist "%%F" (
-                set "FILENAME=%%~nxF"
-
-                echo !FILENAME! | findstr /B /I "sorted" >nul
-                if errorlevel 1 (
-                    if not exist "%DSTROOT%\!SHORTDATE!\%%~nxF" (
-                        echo Copy raw: %%~nxF
-                        copy "%%F" "%DSTROOT%\!SHORTDATE!" >nul
-                    ) else (
-                        echo Skip raw: %%~nxF already exists.
-                    )
+                if not exist "%DSTROOT%\!SHORTDATE!\%%~nxF" (
+                    echo Copy raw: %%~nxF
+                    copy "%%F" "%DSTROOT%\!SHORTDATE!" >nul
                 ) else (
-                    echo Skip sorted: %%~nxF
+                    echo Skip raw: %%~nxF already exists.
                 )
             )
         )

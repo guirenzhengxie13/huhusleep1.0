@@ -12,20 +12,27 @@
     "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\姜堰",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
-    "tasks": ["1", "2", "3"] 
+    "tasks": ["1", "2", "3"]
   },
   "hk": {
     "name": "香港院区",
     "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\香港",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "hk",
-    "tasks": ["1", "2", "3", "6", "10"] 
+    "tasks": ["1", "2", "3", "6", "10"]
   },
   "nj": {
     "name": "南京院区",
     "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\南京",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
-    "tasks": ["1", "2", "3"] 
+    "tasks": ["1", "2", "3"]
+  },
+  "wz": {
+    "name": "梧州院区",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\梧州",
+    "device_roster_name": "full_device_roster.csv",
+    "crawler_account": "default",
+    "tasks": ["1", "2", "3"]
   }
 }

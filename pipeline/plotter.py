@@ -1,8 +1,13 @@
 import os
+os.environ["MPLBACKEND"] = "Agg"
+import matplotlib
+matplotlib.use("Agg")
+
 import json
 import logging
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import math
 from datetime import datetime
 
 # 配置中文字体
@@ -27,16 +32,19 @@ def read_json_files(json_dir):
     return json_files
 
 def plot_unified_metric(data, leave_bed_time, metric_name, output_filename):
-    times = []
-    values = []
+    points = []
     
     for item in data:
         timestamp = datetime.fromisoformat(item['time'])
-        times.append(timestamp)
         if metric_name == 'body_status':
-            values.append(1 if item['value'] >= 1 else 0.3)
+            value = 1 if item['value'] >= 1 else 0.3
         else:
-            values.append(item['value'])
+            value = item['value']
+        points.append((timestamp, value))
+
+    points.sort(key=lambda item: item[0])
+    times = [item[0] for item in points]
+    values = [item[1] for item in points]
 
     if not times:
         return None
@@ -98,7 +106,7 @@ def plot_unified_metric(data, leave_bed_time, metric_name, output_filename):
         plt.axvline(x=leave_bed_timestamp, color='red', linestyle='--', linewidth=2, label='离床时间')
 
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
-    total_minutes = (times[-1] - times[0]).total_seconds() / 60
+    total_minutes = max(0, (times[-1] - times[0]).total_seconds() / 60)
     
     if total_minutes <= 5:
         plt.gca().xaxis.set_major_locator(mdates.SecondLocator(interval=30))
@@ -107,7 +115,8 @@ def plot_unified_metric(data, leave_bed_time, metric_name, output_filename):
     elif total_minutes <= 60:
         plt.gca().xaxis.set_major_locator(mdates.MinuteLocator(interval=5))
     else:
-        plt.gca().xaxis.set_major_locator(mdates.MinuteLocator(interval=10))
+        interval = max(10, math.ceil(total_minutes / 900))
+        plt.gca().xaxis.set_major_locator(mdates.MinuteLocator(interval=interval))
         
     plt.xticks(rotation=45, fontsize=10)
 

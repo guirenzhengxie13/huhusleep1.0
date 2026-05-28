@@ -15,15 +15,14 @@ from utils import clean_name, get_device_mapping
 
 def generate_diagnostics(sleep_info, accurate_events, alert_dts, ref_year):
     diagnostics = []
-    sleep_str = sleep_info.get('入睡清醒', '')
-    try:
-        lines = sleep_str.split('\n')
-        start_str = lines[0].replace('入睡', '').strip()
-        wake_str = lines[1].replace('清醒', '').strip()
-        sleep_start_dt = datetime.strptime(f"{ref_year}-{start_str}", "%Y-%m-%d %H:%M:%S")
-        sleep_wake_dt = datetime.strptime(f"{ref_year}-{wake_str}", "%Y-%m-%d %H:%M:%S")
-    except Exception:
-        sleep_start_dt, sleep_wake_dt = None, None
+    sleep_periods = []
+    for period in sleep_info.get('periods', []):
+        try:
+            sleep_start_dt = datetime.strptime(f"{ref_year}-{period['start']}", "%Y-%m-%d %H:%M:%S")
+            sleep_wake_dt = datetime.strptime(f"{ref_year}-{period['end']}", "%Y-%m-%d %H:%M:%S")
+            sleep_periods.append((sleep_start_dt, sleep_wake_dt))
+        except Exception:
+            continue
 
     matched_alerts = set() 
     for ev in accurate_events:
@@ -55,11 +54,38 @@ def generate_diagnostics(sleep_info, accurate_events, alert_dts, ref_year):
     for adt in alert_dts:
         if adt not in matched_alerts:
             adt_str = adt.strftime('%Y-%m-%d %H:%M:%S')
-            if sleep_start_dt and sleep_wake_dt:
-                diagnostics.append(f"{adt_str}离床预警不在睡眠时间段内，睡眠报告没有离床" if not (sleep_start_dt <= adt <= sleep_wake_dt) else f"{adt_str}有离床预警，睡眠报告没有记录")
+            if sleep_periods:
+                in_any_sleep_period = any(start_dt <= adt <= end_dt for start_dt, end_dt in sleep_periods)
+                diagnostics.append(f"{adt_str}离床预警不在睡眠时间段内，睡眠报告没有离床" if not in_any_sleep_period else f"{adt_str}有离床预警，睡眠报告没有记录")
             else:
                 diagnostics.append(f"{adt_str}有离床预警，但睡眠报告未生成")
     return diagnostics
+
+
+def _append_sleep_record(sleep_data, name, floor, sleep_start, sleep_end, leave_bed):
+    item = sleep_data.setdefault(name, {
+        'periods': [],
+        'leave_bed_times': [],
+        'floor': floor,
+    })
+    if floor and not item.get('floor'):
+        item['floor'] = floor
+    item['periods'].append({"start": sleep_start, "end": sleep_end})
+    if leave_bed:
+        item['leave_bed_times'].extend([value for value in leave_bed.split('\n') if value.strip()])
+
+
+def _finalize_sleep_data(sleep_data):
+    for item in sleep_data.values():
+        item['periods'].sort(key=lambda value: value['start'])
+        item['leave_bed_times'].sort()
+        sleep_lines = []
+        for period in item['periods']:
+            sleep_lines.append(f"入睡 {period['start']}")
+            sleep_lines.append(f"清醒 {period['end']}")
+        item['入睡清醒'] = '\n'.join(sleep_lines)
+        item['离床时间'] = '\n'.join(item['leave_bed_times'])
+        item['e_离床时间'] = '\n'.join([f"{value} 离床分钟" for value in item['leave_bed_times']])
 
 def load_template_config(config):
     template_path = getattr(config, "LEAVE_BED_TEMPLATE_CONFIG", None)
@@ -176,12 +202,16 @@ def run(config, accurate_leave_data):
                 if match:
                     name = clean_name(match.group(1))
                     leave_bed = match.group(5).strip().replace('、', '\n')
-                    sleep_data[name] = {
-                        '入睡清醒': f"入睡 {match.group(3).strip()}\n清醒 {match.group(4).strip()}",
-                        '离床时间': leave_bed,
-                        'e_离床时间': '\n'.join([i+' 离床分钟' for i in leave_bed.split('\n')]) if leave_bed else '',
-                        'floor': match.group(2).strip()
-                    }
+                    _append_sleep_record(
+                        sleep_data,
+                        name,
+                        match.group(2).strip(),
+                        match.group(3).strip(),
+                        match.group(4).strip(),
+                        leave_bed,
+                    )
+
+    _finalize_sleep_data(sleep_data)
 
     wb, ws = build_workbook_from_template_config(config, template_config, device_map)
     align = Alignment(wrap_text=True, vertical='center', horizontal='left')

@@ -143,6 +143,28 @@ class RunStatusStore:
 
         return ordered
 
+    def mark_queued(self, location_code, location_name, target_date, step_key="raw_data", message="已入队"):
+        key = self._key(location_code, target_date)
+        existing = self.rows.get(key)
+        if existing and existing.get("状态") == DONE_STATUS:
+            return False
+        if existing and existing.get("状态"):
+            return False
+
+        now = _now()
+        self.rows[key] = {
+            "日期": _date_label(target_date),
+            "院区": _display_location(location_name),
+            "状态": str(step_key),
+            "任务日期": target_date,
+            "院区代码": location_code,
+            "开始时间": "",
+            "更新时间": now,
+            "错误信息": str(message or ""),
+        }
+        self.save()
+        return True
+
     def mark_running(self, location_code, location_name, target_date, step_key, step_name, message=""):
         key = self._key(location_code, target_date)
         row = self.rows.get(key, {field: "" for field in FIELDS})

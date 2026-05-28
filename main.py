@@ -1,12 +1,16 @@
+import os
+os.environ["MPLBACKEND"] = "Agg"
+import matplotlib
+matplotlib.use("Agg")
+
 import json
 import logging
-import os
 import shutil
 from datetime import datetime, timedelta
 
 from config import Config
 from crawler import warning_crawler
-from pipeline import abnormal_analysis, data_importer, data_split, excel, leave_bed_overlay_debug, plotter, report, slicer, sleep_evt
+from pipeline import abnormal_analysis, data_split, excel, leave_bed_overlay_debug, plotter, raw_importer_v2, report, slicer, sleep_evt
 from pipeline.run_status import RunStatusStore
 
 
@@ -145,7 +149,7 @@ def run_pipeline(location_code, target_date, config_data=None, status_store=None
     else:
         try:
             status_store.mark_running(location_code, location_name, target_date, RAW_DATA_STEP_KEY, RAW_DATA_STEP_NAME)
-            data_importer.ensure_raw_data(config, config_data, IMPORT_DIR, os.getcwd())
+            raw_importer_v2.ensure_raw_data(config, config_data, IMPORT_DIR, os.getcwd())
         except Exception as e:
             status_store.mark_failed(location_code, location_name, target_date, RAW_DATA_STEP_KEY, RAW_DATA_STEP_NAME, e)
             logging.error("自动识别归档数据失败，已终止 %s 的后续分析流程: %s", target_date, e, exc_info=True)
@@ -196,6 +200,10 @@ def run_pipeline(location_code, target_date, config_data=None, status_store=None
 
 def run_jobs(jobs, config_data, status_store, pause_between_days=False):
     original_count = len(jobs)
+    queued_count = register_jobs_in_status(jobs, config_data, status_store)
+    if queued_count:
+        logging.info("已将 %s 个新任务写入状态表，后续中断可继续恢复。", queued_count)
+
     jobs = status_store.prioritize_unfinished(jobs)
     if len(jobs) > original_count:
         logging.info("检测到状态表中存在未完成任务，已优先加入本次队列。")
@@ -219,6 +227,17 @@ def run_jobs(jobs, config_data, status_store, pause_between_days=False):
                 break
 
 
+def register_jobs_in_status(jobs, config_data, status_store):
+    queued_count = 0
+    for job in jobs:
+        location_code = job["location_code"]
+        target_date = job["target_date"]
+        location_name = _location_name(config_data, location_code)
+        if status_store.mark_queued(location_code, location_name, target_date, RAW_DATA_STEP_KEY):
+            queued_count += 1
+    return queued_count
+
+
 if __name__ == "__main__":
     LOCATION_CODE = ""
     USER_INPUT = "auto"
@@ -235,7 +254,7 @@ if __name__ == "__main__":
     if input_str == "auto" or (not location_code and not input_str):
         print(f"启动自动识别模式：扫描 {IMPORT_DIR} 中的 CSV。")
         try:
-            jobs = data_importer.discover_and_import(IMPORT_DIR, CONFIG_FILE_PATH, os.getcwd())
+            jobs = raw_importer_v2.discover_and_import(IMPORT_DIR, CONFIG_FILE_PATH, os.getcwd())
             if not jobs and not status_store.unfinished_jobs():
                 print("没有识别到可运行的完整 CSV 数据组，状态表里也没有未完成任务。")
             run_jobs(jobs, config_data, status_store)

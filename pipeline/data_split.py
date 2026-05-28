@@ -15,11 +15,7 @@ from utils import mkdir_recursive
 
 ATTRIBUTE_NAME = "time,heart_rate,respiratory_rate,body_movement,move_state,body_status,body_position,inbed_flag,cluster_id,cluster_x,cluster_y,cluster_num,cluster_id,cluster_x,cluster_y,cluster_num\n"
 DEFAULT_STANDALONE_IMPORT_DIR = os.path.join(os.path.expanduser("~"), "Downloads")
-<<<<<<< HEAD
 DEFAULT_STANDALONE_OUTPUT_ROOT = os.path.join(os.path.expanduser("~"), "Desktop", "datatest", "timeline_standalone")
-=======
-DEFAULT_STANDALONE_OUTPUT_ROOT = os.path.join(os.path.expanduser("~"), "Desktop", "data", "timeline_standalone")
->>>>>>> db745683ce65441b16f77d8d488d297a4807a611
 STANDALONE_REQUIRED_COLUMNS = ["设备ID", "iid", "字段", "描述", "时间", "值"]
 SLEEP_TRACK_IID = "2.D.30"
 SLEEP_TRACK_FIELD = "sleep-track-data"
@@ -279,70 +275,32 @@ def print_standalone_summary(summary, dry_run=False):
         for csv_path, reason in summary["skipped"]:
             print(f"  - {os.path.basename(csv_path)}: {reason}")
 
-def sort_raw_data(config):
-    logging.info("STARTING RAW DATA SORTING (严格单日 24 小时模式)")
-    raw_data_file = get_latest_csv_file(config.RAW_DATA_DIR)
-    
-    if not raw_data_file:
-        logging.error(f"未找到CSV文件 → {config.RAW_DATA_DIR}")
-        return None
-
-    input_file = os.path.join(config.RAW_DATA_DIR, raw_data_file)
-    sorted_data_file = f"sorted_{raw_data_file}"
-    output_file = os.path.join(config.RAW_DATA_DIR, sorted_data_file)
-
-    if not os.path.exists(input_file):
-        logging.error(f"文件不存在 → {input_file}")
-        return None
-
-    logging.info("开始读取数据，请稍候...")
-    rows = []
-    try:
-        with open(input_file, 'r', encoding='utf-8', errors='ignore') as fp:
-            reader = csv.reader(fp)
-            header = next(reader)
-            rows.append(header)
-            row_count = 0
-            for row in reader:
-                row_count += 1
-                if len(row) >= 5:
-                    device_id = row[0]
-                    time_str = row[4]
-                    try:
-                        time_int = int(float(time_str)) // 1000
-                        rows.append((device_id, time_int, row))
-                    except:
-                        continue
-
-        if len(rows) > 1:
-            header = rows[0]
-            data_rows = rows[1:]
-            sorted_rows = sorted(data_rows, key=lambda x: (x[0], x[1]))
-            sorted_rows_with_header = [header] + [row[2] for row in sorted_rows]
-        else:
-            sorted_rows_with_header = rows
-
-        with open(output_file, 'w', encoding='utf-8', newline='') as fp:
-            writer = csv.writer(fp)
-            writer.writerows(sorted_rows_with_header)
-
-        logging.info("✅ 数据排序完成")
-        return sorted_data_file
-    except Exception as e:
-        logging.error(f"排序错误: {e}")
-        return None
-
 def run(config):
     """外部调用的主入口"""
-    sorted_data_file = sort_raw_data(config)
-    if not sorted_data_file:
-        raise FileNotFoundError("原始数据排序失败或未找到文件。")
+    raw_data_file = get_latest_csv_file(config.RAW_DATA_DIR)
+    if not raw_data_file:
+        raise FileNotFoundError(f"未找到原始 CSV 文件: {config.RAW_DATA_DIR}")
 
-    input_file = os.path.join(config.RAW_DATA_DIR, sorted_data_file)
+    input_file = os.path.join(config.RAW_DATA_DIR, raw_data_file)
+    logging.info("使用已整理的原始 CSV: %s", input_file)
     current_dev_id = None
-    sp = None
     start_timestamp, end_timestamp, file_date = get_range_of_sleep(config.FILE_DATE, config.START_TIME, config.DURATION_TIME)
+    current_device_rows = []
     line_count = 0
+
+    def flush_current_device():
+        if not current_dev_id:
+            return
+
+        output_path = os.path.join(config.TIMELINE_DIR, current_dev_id)
+        mkdir_recursive(output_path)
+        save_file = os.path.join(output_path, f"{current_dev_id}_{file_date}.csv")
+
+        current_device_rows.sort(key=lambda item: item[0])
+        with open(save_file, 'w', encoding='utf-8') as sp:
+            sp.write(ATTRIBUTE_NAME)
+            for _, line in current_device_rows:
+                sp.write(line)
 
     logging.info("开始处理时序数据，请稍候...")
     with open(input_file, 'r', encoding='utf-8', errors='ignore') as fp:
@@ -358,16 +316,9 @@ def run(config):
                 continue
 
             if dev_id != current_dev_id:
+                flush_current_device()
                 current_dev_id = dev_id
-                if sp:
-                    sp.close()
-                output_path = os.path.join(config.TIMELINE_DIR, dev_id)
-                mkdir_recursive(output_path)
-                
-                start_timestamp, end_timestamp, file_date = get_range_of_sleep(config.FILE_DATE, config.START_TIME, config.DURATION_TIME)
-                save_file = os.path.join(output_path, f"{dev_id}_{file_date}.csv")
-                sp = open(save_file, 'w', encoding='utf-8')
-                sp.write(ATTRIBUTE_NAME)
+                current_device_rows = []
 
             try:
                 data_str = data_str.strip('"""').replace('\\"', '"')
@@ -398,14 +349,12 @@ def run(config):
                     ct = datetime.fromtimestamp(time_str + j)
                     time_fmt = ct.strftime("%Y-%m-%d %H:%M:%S")
                     line = f"{time_fmt},{heart_rate[j]},{respiratory_rate[j]},{body_movement[j]},{move_state[j]},{body_status[j]},{body_position[j]},{inbed_flag[j]},{cluster_data[j]}\n"
-                    if sp:
-                        sp.write(line)
+                    current_device_rows.append((time_str + j, line))
 
             except Exception:
                 continue
 
-    if sp:
-        sp.close()
+    flush_current_device()
         
     logging.info(f"✅ 时序解析完毕，共处理了 {line_count} 行原始数据")
     logging.info(f"📂 结果保存在：{config.TIMELINE_DIR}")

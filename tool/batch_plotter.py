@@ -1,4 +1,8 @@
 import os
+os.environ["MPLBACKEND"] = "Agg"
+import matplotlib
+matplotlib.use("Agg")
+
 import glob
 import re
 import pandas as pd
