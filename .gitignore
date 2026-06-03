@@ -29,7 +29,7 @@ assets/旧依赖/
 
 # Runtime state, generated outputs, and local analysis artifacts
 assets/pipeline_status.csv
-datatest/
+data/
 data/
 testdata/
 mixed_raw_sources/

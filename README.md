@@ -15,7 +15,7 @@
 重构期主输出统一写入：
 
 ```text
-C:\Users\Lenovo\Desktop\datatest
+C:\Users\Lenovo\Desktop\data
 ```
 
 旧结果对照基线保留在：
@@ -77,7 +77,7 @@ assets/crawler_accounts.json
 - `assets/chromedriver.exe`：本机 ChromeDriver。
 - `assets/pipeline_status.csv`：流水线断点状态表。
 - `assets/旧依赖/`、`最新设备下载/`：旧表格依赖和平台导出备份。
-- `datatest/`、`data/`：运行输出和对照基线。
+- `data/`、`data/`：运行输出和对照基线。
 
 ## 统一设备总表
 
@@ -111,7 +111,7 @@ assets/full_device_roster.csv
 {
   "hf": {
     "name": "合肥院区",
-    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\合肥",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\合肥",
     "leave_bed_template_name": "leave_bed_analysis_template.json",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
@@ -123,7 +123,7 @@ assets/full_device_roster.csv
 字段说明：
 
 - `name`：院区显示名，需要能和 `full_device_roster.csv` 的 `院区` 字段对应。
-- `base_data_path`：该院区在 `datatest` 下的数据目录。
+- `base_data_path`：该院区在 `data` 下的数据目录。
 - `leave_bed_template_name`：离床分析 Excel 版式配置，放在 `assets/`。
 - `device_roster_name`：统一设备总表，当前固定为 `full_device_roster.csv`。
 - `crawler_account`：后台告警爬虫账号别名，对应本地 `assets/crawler_accounts.json`。
@@ -175,8 +175,8 @@ assets/leave_bed_analysis_template.json
 
 主流水线分成两层：
 
-- 数据处理：`pipeline/raw_importer_v2.py` 扫描 `C:\Users\Lenovo\Downloads` 中的 CSV，按设备号识别院区，按有效睡眠日整理 rawdata。
-- 数据分析：`main.py` 按“院区 + 睡眠日”逐日消费整理后的 rawdata，执行步骤 `1-10`。
+- 数据导入与解析：`pipeline/importing/raw_importer_v2.py` 扫描 `C:\Users\Lenovo\Downloads` 中的 CSV，按设备号识别院区，按有效睡眠日整理 rawdata；`pipeline/importing/data_split.py` 将呼吸心率 rawdata 解析为 timeline。
+- 数据分析：`pipeline/analysis/` 中的模块按“院区 + 睡眠日”逐日消费 timeline、睡眠事件和后台告警数据，执行步骤 `2-10`。
 
 识别依赖：
 
@@ -188,7 +188,7 @@ assets/leave_bed_analysis_template.json
 - 呼吸心率 CSV 按外层 `时间` 分配睡眠日：当天 08:00 到次日 08:00 归为同一个睡眠日；只有检测到完整 24 小时窗口的睡眠日才写入 rawdata。
 - 睡眠报告 CSV 按 `值` 里的 `sleep_start` 分配到对应睡眠日，只为已确认有效的呼吸心率睡眠日写入 rawdata。
 - 同一源 CSV 可以拆成多个日期目录，例如 `rawdata\520`、`rawdata\521`。
-- 整理完成后，源 CSV 会归档到 `C:\Users\Lenovo\Desktop\datatest\_raw_sources`。
+- 整理完成后，源 CSV 会归档到 `C:\Users\Lenovo\Desktop\data\_raw_sources`。
 
 同一院区、同一睡眠日需要同时有睡眠报告和呼吸心率两类 CSV，才会启动数据分析。边缘冗余日或缺少文件类型的日期只做 rawdata 归档，不自动跑分析。
 
@@ -241,7 +241,7 @@ pipeline/test_tracker.py
 它从 Downloads 读取测试跟踪 CSV，按合肥、姜堰、南京拆分归档到：
 
 ```text
-C:\Users\Lenovo\Desktop\datatest\测试跟踪
+C:\Users\Lenovo\Desktop\data\测试跟踪
 ```
 
 `2.d.43` 文件只重命名归档；设备情况表会生成测试情况跟踪 `.xlsx`；`state_day = -1` 的记录会生成待补清单。
@@ -263,7 +263,7 @@ disability_weekreport/verification_records.csv
 输出目录：
 
 ```text
-C:\Users\Lenovo\Desktop\datatest\失能周报数据
+C:\Users\Lenovo\Desktop\data\失能周报数据
 ```
 
 详细说明见 `disability_weekreport/README.md`。
@@ -274,4 +274,4 @@ C:\Users\Lenovo\Desktop\datatest\失能周报数据
 - 把 `full_device_roster.csv` 扩展为完整设备基础表，补充房间号、床号、失能等级等字段。
 - 失能周报逐步完全依赖设备总表，不再依赖独立旧配置中的设备清单。
 - 后台告警爬虫后续优先寻找接口替代 Selenium 翻页。
-- 保持 `datatest` 输出结构与旧 `data` 基线一致，重构以结果一致性验收。
+- 保持 `data` 输出结构与旧 `data` 基线一致，重构以结果一致性验收。

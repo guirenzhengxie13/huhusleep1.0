@@ -7,7 +7,7 @@ from plotly.subplots import make_subplots
 def plot_single_folder_interactive_html():
     # ================= 🎯 路径配置区 =================
     # 直接填入你想要处理的那个具体的设备文件夹路径
-    target_dir = r"C:\Users\Lenovo\Desktop\datatest\画图\this" 
+    target_dir = r"C:\Users\Lenovo\Desktop\data\画图\this" 
     
     # 自动在当前文件夹下建一个专属的输出文件夹，防止和原文件混在一起
     output_dir = os.path.join(target_dir, "output_html")

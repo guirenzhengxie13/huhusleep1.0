@@ -20,7 +20,7 @@ SHOW_AVG_LINE = False
 
 def batch_plot_vital_signs(target_device=None):
     # 1. 基础路径配置 (锁定最外层的画图目录)
-    base_dir = r"C:\Users\Lenovo\Desktop\datatest\画图"
+    base_dir = r"C:\Users\Lenovo\Desktop\data\画图"
     output_base_dir = os.path.join(base_dir, "output")
     
     if not os.path.exists(base_dir):

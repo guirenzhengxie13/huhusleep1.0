@@ -32,7 +32,7 @@ C:\Users\Lenovo\Downloads
 所有生成文件统一写入：
 
 ```text
-C:\Users\Lenovo\Desktop\datatest\失能周报数据
+C:\Users\Lenovo\Desktop\data\失能周报数据
 ```
 
 每天会生成两个目录：

@@ -7,7 +7,7 @@ import shutil
 import sys
 from datetime import datetime, timedelta
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
@@ -15,7 +15,7 @@ from utils import mkdir_recursive
 
 ATTRIBUTE_NAME = "time,heart_rate,respiratory_rate,body_movement,move_state,body_status,body_position,inbed_flag,cluster_id,cluster_x,cluster_y,cluster_num,cluster_id,cluster_x,cluster_y,cluster_num\n"
 DEFAULT_STANDALONE_IMPORT_DIR = os.path.join(os.path.expanduser("~"), "Downloads")
-DEFAULT_STANDALONE_OUTPUT_ROOT = os.path.join(os.path.expanduser("~"), "Desktop", "datatest", "timeline_standalone")
+DEFAULT_STANDALONE_OUTPUT_ROOT = os.path.join(os.path.expanduser("~"), "Desktop", "data", "timeline_standalone")
 STANDALONE_REQUIRED_COLUMNS = ["设备ID", "iid", "字段", "描述", "时间", "值"]
 SLEEP_TRACK_IID = "2.D.30"
 SLEEP_TRACK_FIELD = "sleep-track-data"

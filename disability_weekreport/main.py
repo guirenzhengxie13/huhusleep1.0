@@ -25,7 +25,7 @@ from pipeline.device_matcher import (  # noqa: E402
 from utils import get_device_roster  # noqa: E402
 
 
-BASE_DATA_DIR = Path.home() / "Desktop" / "datatest" / "失能周报数据"
+BASE_DATA_DIR = Path.home() / "Desktop" / "data" / "失能周报数据"
 LOCAL_HISTORY_DATA_DIR = WEEKREPORT_ROOT / "失能周报数据"
 CONFIG_FILE_PATH = WEEKREPORT_ROOT / "config.json"
 LEGACY_CONFIG_FILE_PATH = Path.home() / "Desktop" / "代码" / "失能周报" / "config.json"

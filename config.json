@@ -1,7 +1,7 @@
 {
   "hf": {
     "name": "合肥院区",
-    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\合肥",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\合肥",
     "leave_bed_template_name": "leave_bed_analysis_template.json",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
@@ -9,28 +9,35 @@
   },
   "jy": {
     "name": "姜堰院区",
-    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\姜堰",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\姜堰",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
     "tasks": ["1", "2", "3"]
   },
   "hk": {
     "name": "香港院区",
-    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\香港",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\香港",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "hk",
     "tasks": ["1", "2", "3", "6", "10"]
   },
   "nj": {
     "name": "南京院区",
-    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\南京",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\南京",
+    "device_roster_name": "full_device_roster.csv",
+    "crawler_account": "default",
+    "tasks": ["1", "2", "3"]
+  },
+  "yc": {
+    "name": "盐城院区",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\盐城",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
     "tasks": ["1", "2", "3"]
   },
   "wz": {
     "name": "梧州院区",
-    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\datatest\\梧州",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\梧州",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
     "tasks": ["1", "2", "3"]

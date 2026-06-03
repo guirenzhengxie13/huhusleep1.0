@@ -20,7 +20,7 @@ from utils import build_device_to_location_from_roster, get_device_roster
 
 
 DEFAULT_IMPORT_DIR = r"C:\Users\Lenovo\Downloads"
-DEFAULT_OUTPUT_ROOT = r"C:\Users\Lenovo\Desktop\datatest\测试跟踪"
+DEFAULT_OUTPUT_ROOT = r"C:\Users\Lenovo\Desktop\data\测试跟踪"
 CONFIG_FILE_PATH = os.path.join(PROJECT_ROOT, "config.json")
 TRACKED_LOCATION_CODES = {"hf", "jy", "nj"}
 

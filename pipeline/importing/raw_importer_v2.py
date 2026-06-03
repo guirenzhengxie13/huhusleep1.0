@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 import pytz
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
@@ -166,7 +166,7 @@ def _source_archive_root(config_data):
         if location_config.get("base_data_path")
     ]
     if not base_paths:
-        return os.path.join(os.path.expanduser("~"), "Desktop", "datatest", SOURCE_ARCHIVE_DIR_NAME)
+        return os.path.join(os.path.expanduser("~"), "Desktop", "data", SOURCE_ARCHIVE_DIR_NAME)
 
     parent_paths = [os.path.dirname(path) for path in base_paths]
     try:

@@ -9,7 +9,7 @@ from PIL import Image as PILImage
 
 def generate_excel_report():
     # 1. 路径配置
-    output_dir = r"C:\Users\Lenovo\Desktop\datatest\画图\output"
+    output_dir = r"C:\Users\Lenovo\Desktop\data\画图\output"
     report_path = os.path.join(output_dir, "设备体征图表大巡检报告_原图高清自适应版.xlsx")
 
     # 创建新的 Excel 工作簿
