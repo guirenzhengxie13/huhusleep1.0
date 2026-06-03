@@ -10,6 +10,13 @@
 - 测试跟踪独立流程：处理测试情况跟踪表和 `2.d.43` 数据。
 - 失能周报独立流程：位于 `disability_weekreport/`，不接入睡眠主流水线。
 
+## 流程边界
+
+- `main.py` 只负责睡眠主流水线。
+- `pipeline/test_tracker.py` 是测试跟踪独立流程，不由 `main.py` 调用。
+- `disability_weekreport/main.py` 是失能周报独立流程，不由 `main.py` 调用。
+- 三条流程共享 `assets/full_device_roster.csv` 作为设备主数据，但运行入口和输出目录保持独立。
+
 ## 目录约定
 
 重构期主输出统一写入：
@@ -137,9 +144,10 @@ assets/full_device_roster.csv
 | 姜堰 | `jy` | `1-3` |
 | 香港 | `hk` | `1,2,3,6,10` |
 | 南京 | `nj` | `1-3` |
+| 盐城 | `yc` | `1-3` |
 | 梧州 | `wz` | `1-3` |
 
-新增院区时，先把设备号补进 `assets/full_device_roster.csv`，再在 `config.json` 增加院区配置。
+各院区任务以 `config.json` 为准，README 仅同步说明。新增院区时，先把设备号补进 `assets/full_device_roster.csv`，再在 `config.json` 增加院区配置，最后同步 README。
 
 ## 流水线步骤
 
@@ -181,7 +189,7 @@ assets/leave_bed_analysis_template.json
 识别依赖：
 
 - 院区、设备号、姓名、床位：统一来自 `assets/full_device_roster.csv`。
-- 文件类型：通过睡眠报告 CSV 与呼吸心率 CSV 的字段特征判断。
+- 文件类型：优先通过文件名识别 `*睡眠报告.csv` 与 `*呼吸心率.csv`，非标准文件名再通过 `iid`、`字段`、`描述` 等字段特征判断，公共识别逻辑位于 `pipeline/file_detector.py`。
 
 新的 rawdata 整理规则：
 
@@ -238,7 +246,7 @@ assets/pipeline_status.csv
 pipeline/test_tracker.py
 ```
 
-它从 Downloads 读取测试跟踪 CSV，按合肥、姜堰、南京拆分归档到：
+它从 Downloads 读取测试跟踪 CSV，按 `config.json` 中已配置且能在设备总表匹配到的院区拆分归档到：
 
 ```text
 C:\Users\Lenovo\Desktop\data\测试跟踪

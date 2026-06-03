@@ -149,10 +149,20 @@ def build_workbook_from_template_config(config, template_config, device_map):
 
     return wb, ws
 
+
+def _location_excel_display_name(config):
+    display_name = str(config.LOCATION_CONFIG.get("name") or config.LOCATION_CODE or "").strip()
+    display_name = display_name.replace("院区", "")
+    if display_name and not display_name.endswith("院"):
+        display_name += "院"
+    return display_name or "院区"
+
+
 def run(config, accurate_leave_data):
     logging.info("=== 开始生成 Excel 离床分析报告 ===")
     
-    save_excel_path = os.path.join(config.BASE_DATA_PATH, f'合肥院离床数据分析{config.DATE_STR}晚.xlsx')
+    location_name = _location_excel_display_name(config)
+    save_excel_path = os.path.join(config.BASE_DATA_PATH, f'{location_name}离床数据分析{config.DATE_STR}晚.xlsx')
     if os.path.exists(save_excel_path):
         try:
             with open(save_excel_path, "r+b"): pass

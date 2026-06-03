@@ -22,7 +22,8 @@ from utils import build_device_to_location_from_roster, get_device_roster
 DEFAULT_IMPORT_DIR = r"C:\Users\Lenovo\Downloads"
 DEFAULT_OUTPUT_ROOT = r"C:\Users\Lenovo\Desktop\data\测试跟踪"
 CONFIG_FILE_PATH = os.path.join(PROJECT_ROOT, "config.json")
-TRACKED_LOCATION_CODES = {"hf", "jy", "nj"}
+# None 表示跟随 config.json 中已配置的全部院区；如需白名单可改为 {"hf", "jy"}。
+TRACKED_LOCATION_CODES = None
 
 DATA_TYPE_DEVICE_STATUS = "device_status"
 DATA_TYPE_IDENTITY_2D43 = "identity_2d43"
@@ -100,10 +101,11 @@ def _detect_data_type(header):
 
 def build_device_location_index(config_data, project_root):
     roster_path = os.path.join(project_root, "assets", "full_device_roster.csv")
+    enabled_codes = set(config_data) if TRACKED_LOCATION_CODES is None else set(TRACKED_LOCATION_CODES)
     return {
         device_id: location_code
         for device_id, location_code in build_device_to_location_from_roster(config_data, roster_path).items()
-        if location_code in TRACKED_LOCATION_CODES
+        if location_code in enabled_codes
     }
 
 
@@ -181,7 +183,7 @@ def inspect_test_tracking_csv(csv_path, device_to_location):
             date_counter[date_key] += 1
 
     if not recognized_records:
-        return None, "没有匹配到合肥/姜堰/南京测试设备"
+        return None, "没有匹配到 config.json 中已配置院区的测试设备"
 
     return {
         "source_path": csv_path,

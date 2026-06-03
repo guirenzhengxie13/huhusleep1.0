@@ -12,6 +12,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from utils import mkdir_recursive
+from pipeline.file_detector import find_vital_track_csv
 
 ATTRIBUTE_NAME = "time,heart_rate,respiratory_rate,body_movement,move_state,body_status,body_position,inbed_flag,cluster_id,cluster_x,cluster_y,cluster_num,cluster_id,cluster_x,cluster_y,cluster_num\n"
 DEFAULT_STANDALONE_IMPORT_DIR = os.path.join(os.path.expanduser("~"), "Downloads")
@@ -29,22 +30,6 @@ def get_range_of_sleep(date_str, start_time_str, duration_hours):
     file_date = end_datetime.strftime("%Y-%m-%d")
     
     return start_timestamp, end_timestamp, file_date
-
-def get_latest_csv_file(directory):
-    csv_files = []
-    if not os.path.exists(directory):
-        return None
-        
-    for file in os.listdir(directory):
-        if file.endswith('.csv') and not file.startswith('sorted_'):
-            file_path = os.path.join(directory, file)
-            if os.path.isfile(file_path):
-                file_size = os.path.getsize(file_path)
-                csv_files.append((file_size, file))
-    if csv_files:
-        csv_files.sort(key=lambda x: x[0], reverse=True)
-        return csv_files[0][1]
-    return None
 
 def business_window_from_timestamp(timestamp_sec):
     """按 08:00 分界计算业务文件夹和 timeline 文件日期。"""
@@ -277,12 +262,8 @@ def print_standalone_summary(summary, dry_run=False):
 
 def run(config):
     """外部调用的主入口"""
-    raw_data_file = get_latest_csv_file(config.RAW_DATA_DIR)
-    if not raw_data_file:
-        raise FileNotFoundError(f"未找到原始 CSV 文件: {config.RAW_DATA_DIR}")
-
-    input_file = os.path.join(config.RAW_DATA_DIR, raw_data_file)
-    logging.info("使用已整理的原始 CSV: %s", input_file)
+    input_file = find_vital_track_csv(config.RAW_DATA_DIR)
+    logging.info("使用呼吸心率 CSV 解析 timeline: %s", input_file)
     current_dev_id = None
     start_timestamp, end_timestamp, file_date = get_range_of_sleep(config.FILE_DATE, config.START_TIME, config.DURATION_TIME)
     current_device_rows = []

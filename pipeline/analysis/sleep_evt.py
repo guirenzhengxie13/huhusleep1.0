@@ -4,35 +4,18 @@ import json
 import re
 import logging
 from utils import timestamp_to_shanghai
-
-def get_smallest_csv(directory):
-    """获取目录中体积最小的CSV文件"""
-    csv_files = []
-    if not os.path.exists(directory):
-        return None
-        
-    for file in os.listdir(directory):
-        if file.endswith('.csv'):
-            file_path = os.path.join(directory, file)
-            if os.path.isfile(file_path):
-                csv_files.append((os.path.getsize(file_path), file))
-
-    if not csv_files:
-        return None
-
-    csv_files.sort(key=lambda x: x[0])
-    return csv_files[0][1]
+from pipeline.file_detector import find_sleep_report_csv
 
 def run(config):
     logging.info("=== 开始解析睡眠事件 (Sleep Events) ===")
     
-    input_file_name = get_smallest_csv(config.RAW_DATA_DIR)
-    if not input_file_name:
-        logging.error("错误: 未找到用于提取睡眠事件的原始CSV文件")
+    try:
+        input_file = find_sleep_report_csv(config.RAW_DATA_DIR)
+    except FileNotFoundError as e:
+        logging.error("错误: %s", e)
         return
 
-    input_file = os.path.join(config.RAW_DATA_DIR, input_file_name)
-    logging.info(f"使用最小体积CSV文件提取事件: {input_file}")
+    logging.info("使用睡眠报告 CSV 提取事件: %s", input_file)
     
     os.makedirs(config.SLEEP_EVENTS_DIR, exist_ok=True)
 
