@@ -23,6 +23,17 @@ call :BackupSleepReport "Hefei" "C:\Users\Lenovo\Desktop\data\合肥\rawdata" "\\T
 call :BackupOne "Nanjing" "C:\Users\Lenovo\Desktop\data\南京\timeline" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\南京机构\呼吸心率8点"
 call :BackupOne "Nanjing" "C:\Users\Lenovo\Desktop\data\南京\timeline" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\南京机构\5月份" "COPY_DIR"
 call :BackupRawData "Nanjing" "C:\Users\Lenovo\Desktop\data\南京\rawdata" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\南京机构\5月份"
+call :BackupSleepReport "Nanjing" "C:\Users\Lenovo\Desktop\data\南京\rawdata" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\南京机构\睡眠报告"
+
+call :BackupOne "Wuzhou" "C:\Users\Lenovo\Desktop\data\梧州\timeline" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\梧州养老院\数据解析\呼吸心率8点"
+call :BackupOne "Wuzhou" "C:\Users\Lenovo\Desktop\data\梧州\timeline" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\梧州养老院\数据解析\5月份" "COPY_DIR"
+call :BackupRawData "Wuzhou" "C:\Users\Lenovo\Desktop\data\梧州\rawdata" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\梧州养老院\数据解析\5月份"
+call :BackupSleepReport "Wuzhou" "C:\Users\Lenovo\Desktop\data\梧州\rawdata" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\梧州养老院\数据解析\睡眠报告"
+
+call :BackupOne "Yancheng" "C:\Users\Lenovo\Desktop\data\盐城\timeline" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\盐城养老院\数据解析\呼吸心率8点"
+call :BackupOne "Yancheng" "C:\Users\Lenovo\Desktop\data\盐城\timeline" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\盐城养老院\数据解析\5月份" "COPY_DIR"
+call :BackupRawData "Yancheng" "C:\Users\Lenovo\Desktop\data\盐城\rawdata" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\盐城养老院\数据解析\5月份"
+call :BackupSleepReport "Yancheng" "C:\Users\Lenovo\Desktop\data\盐城\rawdata" "\\TAIHU\public\公共\步步安_呼呼睡持续跟踪\呼呼睡持续跟踪\盐城养老院\数据解析\睡眠报告"
 
 echo.
 echo ========================================
@@ -31,7 +42,6 @@ echo Existing files/folders were skipped.
 echo ========================================
 pause
 exit /b
-
 
 :BackupOne
 set "NAME=%~1"
@@ -143,11 +153,18 @@ for /d %%D in ("%SRC%\*") do (
 
         for %%F in ("%%D\*") do (
             if exist "%%F" (
-                if not exist "%DSTROOT%\!SHORTDATE!\%%~nxF" (
-                    echo Copy raw: %%~nxF
-                    copy "%%F" "%DSTROOT%\!SHORTDATE!" >nul
+                set "FILENAME=%%~nxF"
+
+                echo !FILENAME! | findstr /B /I "sorted" >nul
+                if errorlevel 1 (
+                    if not exist "%DSTROOT%\!SHORTDATE!\%%~nxF" (
+                        echo Copy raw: %%~nxF
+                        copy "%%F" "%DSTROOT%\!SHORTDATE!" >nul
+                    ) else (
+                        echo Skip raw: %%~nxF already exists.
+                    )
                 ) else (
-                    echo Skip raw: %%~nxF already exists.
+                    echo Skip sorted: %%~nxF
                 )
             )
         )
