@@ -140,12 +140,12 @@ assets/full_device_roster.csv
 
 | 院区 | 代码 | 任务 |
 | --- | --- | --- |
-| 合肥 | `hf` | `1-8` |
-| 姜堰 | `jy` | `1-3` |
-| 香港 | `hk` | `1,2,3,6,10` |
-| 南京 | `nj` | `1-3` |
-| 盐城 | `yc` | `1-3` |
-| 梧州 | `wz` | `1-3` |
+| 合肥 | `hf` | `1-8,11` |
+| 姜堰 | `jy` | `1-3,11` |
+| 香港 | `hk` | `1,2,3,6,10,11` |
+| 南京 | `nj` | `1-3,11` |
+| 盐城 | `yc` | `1-3,11` |
+| 梧州 | `wz` | `1-3,11` |
 
 各院区任务以 `config.json` 为准，README 仅同步说明。新增院区时，先把设备号补进 `assets/full_device_roster.csv`，再在 `config.json` 增加院区配置，最后同步 README。
 
@@ -164,8 +164,19 @@ assets/full_device_roster.csv
 | `8` | Excel 报表合成 |
 | `9` | 明细体征图表生成，Excel 不引用，耗时较长 |
 | `10` | 离床预警叠加图 |
+| `11` | inbed_flag 异常检测 |
 
 第 5 步会生成 Excel 需要的 `body_status` 离床状态图和 `accurate_leave_bed.json`。第 10 步根据后台离床预警时间点，读取前后 10 分钟 timeline，生成 `body_status` 与 `inbed_flag` 的叠加图。
+
+第 11 步独立读取 timeline 中的 `move_state`、`body_status`、`inbed_flag`。其中 `move_state` 和 `body_status` 非零即归一为 1，`inbed_flag` 按 0/1 使用；三者状态不一致持续超过 1 分钟时，会在 `output\<月日>\inbed_flag_anomaly` 生成总览 CSV 和异常叠加线图。画图时三条线会错位显示，低侧为 `0 / 0.05 / 0.1`，高侧为 `0.9 / 0.95 / 1`，总览 CSV 会记录异常时段内三个原始字段的众数。
+
+也可以单独全量检查本地所有院区 timeline：
+
+```bash
+python pipeline/analysis/inbed_flag_anomaly.py
+```
+
+独立运行会按 `config.json` 扫描所有院区的 `timeline\<月日>\<设备号>\*.csv`，并把检查状态写入数据根目录下的 `_inbed_flag_anomaly_status.csv`。已经完成且文件大小/修改时间未变化的 timeline 会在下次运行时自动跳过；如需重跑全部文件，可加 `--force`。
 
 ## 离床分析模板
 
