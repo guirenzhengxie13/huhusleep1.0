@@ -5,41 +5,48 @@
     "leave_bed_template_name": "leave_bed_analysis_template.json",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
-    "tasks": ["1", "2", "3", "4", "5", "6", "7", "8", "11"]
+    "tasks": ["1", "2", "3", "4", "5", "6", "7", "8"]
   },
   "jy": {
     "name": "姜堰院区",
     "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\姜堰",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
-    "tasks": ["1", "2", "3", "11"]
+    "tasks": ["1", "2", "3"]
   },
   "hk": {
     "name": "香港院区",
     "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\香港",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "hk",
-    "tasks": ["1", "2", "3", "6", "10", "11"]
+    "tasks": ["1", "2", "3", "6", "10"]
   },
   "nj": {
     "name": "南京院区",
     "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\南京",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
-    "tasks": ["1", "2", "3", "11"]
+    "tasks": ["1", "2", "3"]
   },
   "yc": {
     "name": "盐城院区",
     "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\盐城",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
-    "tasks": ["1", "2", "3", "11"]
+    "tasks": ["1", "2", "3"]
+  },
+  "ts": {
+    "name": "公司内测",
+    "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\公司内测",
+    "device_roster_name": "full_device_roster.csv",
+    "crawler_account": "default",
+    "tasks": ["1", "2", "3"]
   },
   "wz": {
     "name": "梧州院区",
     "base_data_path": "C:\\Users\\Lenovo\\Desktop\\data\\梧州",
     "device_roster_name": "full_device_roster.csv",
     "crawler_account": "default",
-    "tasks": ["1", "2", "3", "11"]
+    "tasks": ["1", "2", "3"]
   }
 }

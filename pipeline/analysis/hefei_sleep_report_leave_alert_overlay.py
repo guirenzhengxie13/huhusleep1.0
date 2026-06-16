@@ -71,6 +71,7 @@ def _default_paths(config_path, location_code, target_date, output_dir_name=DEFA
         "warn_dir": os.path.join(base_data_path, "warn", month_day),
         "timeline_dir": os.path.join(base_data_path, "timeline", month_day),
         "output_dir": os.path.join(output_root, output_dir_name),
+        "marker_path": os.path.join(output_root, "timeline_markers", "timeline_markers.csv"),
         "roster_path": os.path.join(PROJECT_ROOT, "assets", config_data[location_code].get("device_roster_name", "full_device_roster.csv")),
     }
 
@@ -253,9 +254,43 @@ def _iter_mismatch_segments(df):
             yield start_time, end_time, duration_seconds
 
 
-def _plot_event(event, nearest_alert, df, output_path, window_start, window_end):
+def _load_marker_segments(marker_path):
+    segments_by_device = defaultdict(list)
+    if not marker_path or not os.path.exists(marker_path):
+        return segments_by_device
+
+    with open(marker_path, "r", encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            if (row.get("事件类型") or "").strip() != "state_mismatch_over_5min":
+                continue
+            device_id = (row.get("设备号") or "").strip()
+            if not device_id:
+                continue
+            try:
+                start_time = datetime.strptime((row.get("开始时间") or "").strip(), "%Y-%m-%d %H:%M:%S")
+                end_time = datetime.strptime((row.get("结束时间") or "").strip(), "%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                continue
+            duration_seconds = (end_time - start_time).total_seconds()
+            segments_by_device[device_id].append((start_time, end_time, duration_seconds))
+
+    for values in segments_by_device.values():
+        values.sort(key=lambda item: item[0])
+    return segments_by_device
+
+
+def _marker_segments_in_window(segments, window_start, window_end):
+    return [
+        (start_time, end_time, duration_seconds)
+        for start_time, end_time, duration_seconds in segments
+        if start_time <= window_end and end_time >= window_start
+    ]
+
+
+def _plot_event(event, nearest_alert, df, output_path, window_start, window_end, mismatch_segments=None):
     fig, ax = plt.subplots(figsize=(14, 5))
-    mismatch_segments = list(_iter_mismatch_segments(df)) if not df.empty else []
+    if mismatch_segments is None:
+        mismatch_segments = list(_iter_mismatch_segments(df)) if not df.empty else []
 
     if not df.empty:
         for column in STATE_COLUMNS:
@@ -361,12 +396,14 @@ def run(
     timeline_dir,
     output_dir,
     roster_path=DEFAULT_ROSTER_PATH,
+    marker_path=None,
 ):
     os.makedirs(output_dir, exist_ok=True)
     year = _parse_year_from_warn_dir(warn_dir)
     device_map = get_device_mapping(roster_path)
     events = _parse_sleep_report_events(sleep_report_path, device_map, year)
     alerts_by_name = _read_alerts_by_name(warn_dir)
+    marker_segments_by_device = _load_marker_segments(marker_path)
     summary_rows = []
 
     for event in events:
@@ -382,7 +419,22 @@ def run(
 
         try:
             df = _read_timeline_window(timeline_dir, event["device_id"], window_start, window_end)
-            status, alert_time_text, delta_seconds, mismatch_segments = _plot_event(event, nearest_alert, df, output_path, window_start, window_end)
+            marker_mismatch_segments = None
+            if marker_segments_by_device:
+                marker_mismatch_segments = _marker_segments_in_window(
+                    marker_segments_by_device.get(event["device_id"], []),
+                    window_start,
+                    window_end,
+                )
+            status, alert_time_text, delta_seconds, mismatch_segments = _plot_event(
+                event,
+                nearest_alert,
+                df,
+                output_path,
+                window_start,
+                window_end,
+                marker_mismatch_segments,
+            )
             filename = base_filename
             if mismatch_segments:
                 filename = f"error_{base_filename}"
@@ -441,6 +493,7 @@ def main():
     parser.add_argument("--timeline-dir", default=None)
     parser.add_argument("--output-dir", default=None)
     parser.add_argument("--roster", default=None)
+    parser.add_argument("--marker-csv", default=None, help="timeline_markers.csv 路径；传入后直接用 marker 标注不匹配背景")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
@@ -450,7 +503,8 @@ def main():
     timeline_dir = args.timeline_dir or paths["timeline_dir"]
     output_dir = args.output_dir or paths["output_dir"]
     roster_path = args.roster or paths["roster_path"]
-    rows = run(sleep_report_path, warn_dir, timeline_dir, output_dir, roster_path)
+    marker_path = args.marker_csv or (paths["marker_path"] if os.path.exists(paths["marker_path"]) else None)
+    rows = run(sleep_report_path, warn_dir, timeline_dir, output_dir, roster_path, marker_path)
     print({"events": len(rows), "output_dir": output_dir})
 
 

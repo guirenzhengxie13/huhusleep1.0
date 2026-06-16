@@ -85,18 +85,21 @@ def _attribute_name(optional_fields=()):
     return f"{','.join(_attribute_fields(optional_fields))}\n"
 
 def _cluster_to_values(cluster, index):
+    values = [""] * len(CLUSTER_ATTRIBUTE_FIELDS)
     if not isinstance(cluster, list) or index >= len(cluster):
-        return []
+        return values
     items = cluster[index]
     if not isinstance(items, list):
-        return []
+        return values
 
-    values = []
     for cluster_index, item in enumerate(items[:2]):
         if not isinstance(item, str):
             continue
         parts = item.strip('"').split(",")
-        values.extend(parts[:4])
+        offset = cluster_index * 4
+        for part_index in range(4):
+            if part_index < len(parts):
+                values[offset + part_index] = parts[part_index]
     return values
 
 def _standalone_header_indexes(header):

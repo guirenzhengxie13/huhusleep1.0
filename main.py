@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 from config import Config
 from crawler import warning_crawler
-from pipeline.analysis import abnormal_analysis, excel, inbed_flag_anomaly, leave_bed_overlay_debug, plotter, report, slicer, sleep_evt
+from pipeline.analysis import abnormal_analysis, excel, inbed_flag_anomaly, leave_bed_overlay_debug, plotter, report, slicer, sleep_evt, timeline_marker, timeline_marker_plotter
 from pipeline.importing import data_split, raw_importer_v2
 from pipeline.run_status import RunStatusStore
 
@@ -32,6 +32,8 @@ STEPS_MAP = {
     "9": ("明细体征图表生成", plotter.run_detail_plots),
     "10": ("离床预警叠加图", leave_bed_overlay_debug.run),
     "11": ("inbed_flag 异常检测", inbed_flag_anomaly.run),
+    "12": ("timeline marker 索引", timeline_marker.run),
+    "13": ("timeline marker 画图", timeline_marker_plotter.run),
 }
 
 RAW_DATA_STEP_KEY = "raw_data"

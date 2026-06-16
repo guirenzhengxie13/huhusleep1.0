@@ -140,7 +140,7 @@ assets/full_device_roster.csv
 
 | 院区 | 代码 | 任务 |
 | --- | --- | --- |
-| 合肥 | `hf` | `1-8,11` |
+| 合肥 | `hf` | `1-8,11,12,13` |
 | 姜堰 | `jy` | `1-3,11` |
 | 香港 | `hk` | `1,2,3,6,10,11` |
 | 南京 | `nj` | `1-3,11` |
@@ -165,10 +165,16 @@ assets/full_device_roster.csv
 | `9` | 明细体征图表生成，Excel 不引用，耗时较长 |
 | `10` | 离床预警叠加图 |
 | `11` | inbed_flag 异常检测 |
+| `12` | timeline marker 索引 |
+| `13` | timeline marker 画图 |
 
 第 5 步会生成 Excel 需要的 `body_status` 离床状态图和 `accurate_leave_bed.json`。第 10 步根据后台离床预警时间点，读取前后 10 分钟 timeline，生成 `body_status` 与 `inbed_flag` 的叠加图。
 
 第 11 步独立读取 timeline 中的 `move_state`、`body_status`、`inbed_flag`。其中 `move_state` 和 `body_status` 非零即归一为 1，`inbed_flag` 按 0/1 使用；三者状态不一致持续超过 1 分钟时，会在 `output\<月日>\inbed_flag_anomaly` 生成总览 CSV 和异常叠加线图。画图时三条线会错位显示，低侧为 `0 / 0.05 / 0.1`，高侧为 `0.9 / 0.95 / 1`，总览 CSV 会记录异常时段内三个原始字段的众数。
+
+第 12 步生成轻量 timeline marker 索引表，不再保存每个片段的完整 JSON。当前第一版只判断 `move_state`、`body_status`、`inbed_flag` 三个状态字段，输出到 `output\<月日>\timeline_markers\timeline_markers.csv`。
+
+第 13 步读取第 12 步的索引表，按设备号、日期 timeline 目录和行号范围回读局部数据，复用三值错位归一化画图逻辑，输出到 `output\<月日>\timeline_marker_plots`；独立画图入口为 `python pipeline\analysis\timeline_marker_plotter.py --location hf --date 68`。
 
 也可以单独全量检查本地所有院区 timeline：
 
