@@ -293,6 +293,50 @@ C:\Users\Lenovo\Desktop\data\失能周报数据
 
 详细说明见 `disability_weekreport/README.md`。
 
+## 同步脚本
+
+新增的同步脚本放在：
+
+```text
+同步脚本/
+```
+
+当前包含两个批处理：
+
+```text
+同步脚本/databackup.bat
+同步脚本/test_tracking_backup_newbat_format.bat
+```
+
+`databackup.bat` 用于把各院区本地数据同步到共享盘。当前覆盖的本地来源包括各院区的 `timeline`、`rawdata`，并会额外从 `rawdata` 中整理睡眠报告到共享盘对应目录。脚本采用“不覆盖”策略：目标位置已有同名文件或同名日期文件夹时会跳过，避免覆盖已经交付的数据。
+
+`test_tracking_backup_newbat_format.bat` 用于同步测试跟踪独立流程的输出，来源是：
+
+```text
+C:\Users\Lenovo\Desktop\data\测试跟踪
+```
+
+它会把各院区的 `device_status` 和 `identity_2d43` 结果分别复制到共享盘的测试情况跟踪目录，同样采用“不覆盖”策略。
+
+运行前需要确认两类路径：
+
+- 本地来源路径：脚本中所有 `C:\Users\Lenovo\Desktop\data\...`。
+- 共享盘目标路径：脚本中所有 `\\TAIHU\public\...`。
+
+如果接手人的本地数据仍放在桌面 `data` 目录下，通常只需要把：
+
+```text
+C:\Users\Lenovo\Desktop\data
+```
+
+替换成接手人自己的数据根目录，例如：
+
+```text
+C:\Users\新的用户名\Desktop\data
+```
+
+注意这里的 `Lenovo` 是 Windows 用户名，不是主机名。交接时不能只按“主机名”替换，要按实际用户目录和数据目录替换。若对方的数据不放在桌面，或共享盘盘符/UNC 路径不同，也要同步修改对应路径。
+
 ## 后续重构方向
 
 - 继续把路径和运行参数从源码迁入配置或命令行参数。
